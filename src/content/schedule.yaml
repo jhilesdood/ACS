@@ -1,0 +1,110 @@
+# SAMPLE timetable for layout only. Replace with the real weekly schedule before launch.
+classes:
+  - day: Mon
+    start: "06:00"
+    end: "07:00"
+    title: Muay Thai
+    discipline: Muay Thai
+    level: All levels
+  - day: Mon
+    start: "16:30"
+    end: "17:30"
+    title: Youth class
+    discipline: Youth
+    level: Youth
+  - day: Mon
+    start: "18:00"
+    end: "19:00"
+    title: Fundamentals
+    discipline: BJJ
+    level: Beginner
+  - day: Mon
+    start: "19:00"
+    end: "20:30"
+    title: MMA
+    discipline: MMA
+    level: Intermediate
+  - day: Tue
+    start: "06:00"
+    end: "07:00"
+    title: No-gi
+    discipline: BJJ
+    level: All levels
+  - day: Tue
+    start: "18:00"
+    end: "19:00"
+    title: Wrestling
+    discipline: Wrestling
+    level: All levels
+  - day: Tue
+    start: "19:00"
+    end: "20:30"
+    title: Fight team
+    discipline: MMA
+    level: Fight team
+  - day: Wed
+    start: "06:00"
+    end: "07:00"
+    title: Boxing
+    discipline: Boxing
+    level: All levels
+  - day: Wed
+    start: "16:30"
+    end: "17:30"
+    title: Youth class
+    discipline: Youth
+    level: Youth
+  - day: Wed
+    start: "18:00"
+    end: "19:00"
+    title: Muay Thai
+    discipline: Muay Thai
+    level: Beginner
+  - day: Wed
+    start: "19:00"
+    end: "20:30"
+    title: Gi
+    discipline: BJJ
+    level: Intermediate
+  - day: Thu
+    start: "06:00"
+    end: "07:00"
+    title: MMA conditioning
+    discipline: MMA
+    level: All levels
+  - day: Thu
+    start: "18:00"
+    end: "19:00"
+    title: Boxing
+    discipline: Boxing
+    level: Beginner
+  - day: Thu
+    start: "19:00"
+    end: "20:30"
+    title: Fight team
+    discipline: MMA
+    level: Fight team
+  - day: Fri
+    start: "16:30"
+    end: "17:30"
+    title: Youth class
+    discipline: Youth
+    level: Youth
+  - day: Fri
+    start: "18:00"
+    end: "19:30"
+    title: Sparring
+    discipline: Muay Thai
+    level: Advanced
+  - day: Sat
+    start: "09:00"
+    end: "10:00"
+    title: Youth class
+    discipline: Youth
+    level: Youth
+  - day: Sat
+    start: "10:30"
+    end: "12:00"
+    title: Open mat
+    discipline: Open mat
+    level: All levels

@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { getSite, isTbd } from '../../site';
+const site = await getSite();
+---
+
+<Base title="Sign-up unavailable" noindex description="Online sign-up is not available right now.">
+  <PageHero
+    title="Not yet"
+    lede="Online sign-up isn't available for this membership right now. Nothing was charged. Contact the gym and we'll get you set up."
+  >
+    <p class:list={{ tbd: isTbd(site.email) }}>Email: {site.email}</p>
+    <p class:list={{ tbd: isTbd(site.phone) }}>Phone: {site.phone}</p>
+    <a href="/contact" class="btn btn-red">Contact the gym</a>
+  </PageHero>
+</Base>

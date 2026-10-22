@@ -1,0 +1,128 @@
+---
+// Posts to /api/contact. With JS it submits in place and shows inline errors;
+// without JS the endpoint redirects to /sent.
+interface Props {
+  type: 'consult' | 'contact' | 'youth';
+  submitLabel: string;
+}
+const { type, submitLabel } = Astro.props;
+const fid = `form-${type}`;
+---
+
+<form class="form inquiry" method="post" action="/api/contact" id={fid} novalidate>
+  <input type="hidden" name="type" value={type} />
+  <div class="hp" aria-hidden="true">
+    <label for={`${fid}-website`}>Leave this empty</label>
+    <input id={`${fid}-website`} name="website" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <div class="field">
+    <label for={`${fid}-name`}>{type === 'youth' ? 'Parent or guardian name' : 'Your name'}</label>
+    <input id={`${fid}-name`} name="name" autocomplete="name" required aria-describedby={`${fid}-name-err`} />
+    <p class="error" id={`${fid}-name-err`} hidden></p>
+  </div>
+
+  <div class="field">
+    <label for={`${fid}-email`}>Email</label>
+    <input id={`${fid}-email`} name="email" type="email" autocomplete="email" required aria-describedby={`${fid}-email-err`} />
+    <p class="error" id={`${fid}-email-err`} hidden></p>
+  </div>
+
+  <div class="field">
+    <label for={`${fid}-phone`}>Phone <span class="hint">(optional)</span></label>
+    <input id={`${fid}-phone`} name="phone" type="tel" autocomplete="tel" />
+  </div>
+
+  {
+    type === 'consult' && (
+      <div class="field">
+        <label for={`${fid}-goal`}>What do you want to work on?</label>
+        <select id={`${fid}-goal`} name="goal">
+          <option>Learn from zero</option>
+          <option>Get fight-ready</option>
+          <option>Fitness and conditioning</option>
+          <option>Sharpen one discipline</option>
+          <option>Something else</option>
+        </select>
+      </div>
+    )
+  }
+  {
+    type === 'youth' && (
+      <div class="field">
+        <label for={`${fid}-age`}>Child's age</label>
+        <input id={`${fid}-age`} name="childAge" inputmode="numeric" />
+      </div>
+    )
+  }
+
+  <div class="field">
+    <label for={`${fid}-message`}>{type === 'consult' ? 'Anything your coach should know?' : 'Message'}</label>
+    <p class="hint" id={`${fid}-message-hint`}>
+      {type === 'consult' ? 'Experience, injuries, when you can train.' : 'We reply by email.'}
+    </p>
+    <textarea id={`${fid}-message`} name="message" aria-describedby={`${fid}-message-hint`}></textarea>
+  </div>
+
+  <p class="form-status" role="status" hidden></p>
+
+  <button type="submit" class="btn btn-red">{submitLabel}</button>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form.inquiry').forEach((form) => {
+    const status = form.querySelector<HTMLElement>('.form-status')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const label = button.textContent;
+
+    const setError = (name: string, message: string) => {
+      const input = form.elements.namedItem(name) as HTMLInputElement;
+      const err = form.querySelector<HTMLElement>(`#${input.id}-err`)!;
+      input.setAttribute('aria-invalid', String(Boolean(message)));
+      err.textContent = message;
+      err.hidden = !message;
+      return !message;
+    };
+
+    const validate = () => {
+      const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+      const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+      const okName = setError('name', name ? '' : 'Enter your name.');
+      const okEmail = setError(
+        'email',
+        !email ? 'Enter your email so we can reply.' : /^\S+@\S+\.\S+$/.test(email) ? '' : 'Enter an email like name@example.com.',
+      );
+      return okName && okEmail;
+    };
+
+    form.querySelectorAll('input[required]').forEach((i) => i.addEventListener('blur', () => form.dataset.tried && validate()));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      form.dataset.tried = '1';
+      if (!validate()) {
+        form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Sending…';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'The message did not send.');
+        form.reset();
+        status.textContent = 'Sent. A coach will get back to you by email.';
+      } catch (err) {
+        status.textContent = `${(err as Error).message} Try again, or email us directly.`;
+      } finally {
+        status.hidden = false;
+        button.disabled = false;
+        button.textContent = label;
+      }
+    });
+  });
+</script>

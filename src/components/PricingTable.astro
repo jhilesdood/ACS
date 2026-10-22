@@ -1,0 +1,342 @@
+---
+// Membership plans as premium cards.
+// Phones/tablets: a swipe deck that opens centered on the featured plan, with dots and arrows.
+// Desktop (60rem+): three equal-height cards side by side.
+import { getOrdered } from '../lib/content';
+import { isTbd } from '../site';
+
+interface Props {
+  headingLevel?: 'h1' | 'h2';
+  /** On the memberships page the buttons start Stripe checkout; elsewhere they link there. */
+  checkout?: boolean;
+}
+const { headingLevel = 'h2', checkout = false } = Astro.props;
+const Heading = headingLevel;
+const PlanHeading = headingLevel === 'h1' ? 'h2' : 'h3';
+const plans = await getOrdered('plans');
+const featuredIndex = Math.max(0, plans.findIndex((p) => p.data.featured));
+---
+
+<section class="pricing" aria-labelledby="pricing-title" data-start={featuredIndex}>
+  <div class="wrap head">
+    <Heading id="pricing-title" class="display">Memberships</Heading>
+    <p class="lede">
+      Billed monthly. Sign up here in a few minutes, and manage your card or membership online whenever you
+      need to.
+    </p>
+  </div>
+
+  <ul class="deck" role="list" aria-label="Membership plans" tabindex="0">
+    {
+      plans.map(({ id, data }) => (
+        <li id={`plan-${id}`} class:list={['card', { featured: data.featured }]} data-name={data.name}>
+          <div class="band">
+            {data.badge && <p class="tag">{data.badge}</p>}
+            <PlanHeading class="name">{data.name}</PlanHeading>
+            <p class="audience">{data.audience === 'youth' ? 'Signed up by a parent or guardian' : 'Adults'}</p>
+          </div>
+
+          <div class="body">
+            <p class="price">
+              <span class:list={['amount', { tbd: isTbd(data.price) }]}>{data.price}</span>
+              <span class="period">{data.period}</span>
+            </p>
+            <p class="summary">{data.summary}</p>
+            <ul class="includes" role="list" aria-label="What's included">
+              {data.includes.map((item) => (
+                <li>
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M4 10.5l4 4 8-9" />
+                  </svg>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="foot">
+            {checkout ? (
+              <form method="post" action="/api/checkout">
+                <input type="hidden" name="plan" value={id} />
+                <button type="submit" class:list={['btn', data.featured ? 'btn-red' : 'btn-ghost']}>
+                  Join {data.name}
+                </button>
+              </form>
+            ) : (
+              <a href={`/memberships#plan-${id}`} class:list={['btn', data.featured ? 'btn-red' : 'btn-ghost']}>
+                Join {data.name}
+              </a>
+            )}
+            <p class="fine">
+              Billed monthly. See the <a href="/terms">membership terms</a>.
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="controls wrap" hidden>
+    <div class="dots" role="group" aria-label="Choose a plan"></div>
+    <div class="arrows">
+      <button type="button" class="arrow prev" aria-label="Previous plan">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+      </button>
+      <button type="button" class="arrow next" aria-label="Next plan">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { initDeck } from '../lib/deck';
+
+  document.querySelectorAll<HTMLElement>('.pricing').forEach((root) => {
+    initDeck(root, { startIndex: Number(root.dataset.start) || 0, label: 'plan', align: 'center' });
+  });
+</script>
+
+<style>
+  .pricing {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .head {
+    display: grid;
+    gap: var(--space-m);
+    margin-bottom: var(--space-l);
+  }
+
+  /* ---------- Deck (mobile first) ---------- */
+  .deck {
+    display: flex;
+    gap: var(--space-s);
+    margin: 0;
+    padding: var(--space-s) var(--gutter);
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .deck::-webkit-scrollbar {
+    display: none;
+  }
+  .deck:focus-visible {
+    outline-offset: -3px;
+  }
+
+  /* ---------- Card ---------- */
+  .card {
+    position: relative; /* keeps visually-hidden text inside the scroller */
+    flex: 0 0 min(84%, 23rem);
+    scroll-snap-align: center;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    background: #0e0e0e;
+    border: 1px solid var(--line);
+    border-top: 6px solid #2a2a2a;
+  }
+  .card.featured {
+    background: #151515;
+    border-color: rgb(208 2 27 / 0.55);
+    border-top-color: var(--corner-red);
+  }
+
+  .band {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    padding: var(--space-m) var(--space-m) var(--space-s);
+  }
+  .tag {
+    justify-self: start;
+    margin-bottom: 0.4rem;
+    padding: 0.3rem 0.65rem;
+    background: var(--corner-red);
+    color: var(--white);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .name {
+    font-size: var(--step-3);
+    text-transform: uppercase;
+  }
+  .audience {
+    color: var(--steel);
+    font-size: 0.9375rem;
+  }
+
+  .body {
+    display: grid;
+    align-content: start;
+    gap: var(--space-s);
+    padding: var(--space-s) var(--space-m) var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding-top: 0.25rem;
+  }
+  .amount {
+    font-size: clamp(3rem, 2.4rem + 3vw, 4.5rem);
+    font-weight: 900;
+    font-stretch: 62%;
+    line-height: 0.9;
+    font-variant-numeric: tabular-nums;
+    color: var(--white);
+  }
+  .amount.tbd {
+    color: var(--steel);
+  }
+  .period {
+    color: var(--steel);
+    font-size: 1rem;
+  }
+  .summary {
+    color: var(--canvas);
+  }
+  .includes {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .includes li {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr;
+    gap: 0.6rem;
+    align-items: start;
+    padding-block: 0.55rem;
+    border-top: 1px solid var(--line);
+    font-size: 1rem;
+  }
+  .includes svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.1rem;
+    fill: none;
+    stroke: var(--corner-red);
+    stroke-width: 2.5;
+    stroke-linecap: square;
+  }
+
+  .foot {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0 var(--space-m) var(--space-m);
+  }
+  .foot form,
+  .foot .btn {
+    width: 100%;
+    margin: 0;
+  }
+  .fine {
+    color: var(--steel);
+    font-size: 0.875rem;
+    text-align: center;
+  }
+  .fine a {
+    text-underline-offset: 3px;
+  }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-s);
+  }
+  .controls[hidden] {
+    display: none;
+  }
+  .dots {
+    display: flex;
+  }
+  .dots :global(.dot) {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: -0.6rem;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .dots :global(.dot:first-child) {
+    margin-left: -0.9rem;
+  }
+  .dots :global(.dot)::before {
+    content: '';
+    width: 0.65rem;
+    height: 0.65rem;
+    border: 2px solid var(--steel);
+    transition:
+      background-color var(--dur-fast) ease,
+      border-color var(--dur-fast) ease,
+      width var(--dur) var(--ease-out);
+  }
+  .dots :global(.dot[aria-current='true'])::before {
+    width: 1.6rem;
+    background: var(--corner-red);
+    border-color: var(--corner-red);
+  }
+  .arrows {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .arrow {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 2px solid var(--canvas);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--canvas);
+    cursor: pointer;
+  }
+  .arrow svg {
+    width: 1.4rem;
+    height: 1.4rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+  }
+  .arrow:active:not(:disabled) {
+    background: var(--canvas);
+    color: var(--black);
+  }
+  .arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  /* ---------- Desktop: all plans side by side ---------- */
+  @media (min-width: 60rem) {
+    .deck {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-m);
+      max-width: var(--max);
+      margin-inline: auto;
+      overflow: visible;
+      scroll-snap-type: none;
+    }
+    .card {
+      flex: none;
+      /* Share row heights across cards so names, prices and buttons line up */
+      grid-row: span 3;
+      grid-template-rows: subgrid;
+    }
+    .controls {
+      display: none !important;
+    }
+  }
+</style>

@@ -1,0 +1,55 @@
+/* ACS MMA design tokens. Single source of truth; see DESIGN.md for the rules behind them. */
+:root {
+  /* Color: brand-pinned red + black */
+  --black: #000000;
+  --corner-red: #d0021b; /* large type, fills, buttons with white text (5.3:1). Never small red text on black. */
+  --blood: #7a0010; /* pressed/hover, deep red fields */
+  --canvas: #f2f2f0; /* light sections, body text on black */
+  --steel: #8a8d91; /* secondary text on black (6.4:1) */
+  --steel-dark: #55585c; /* secondary text on canvas (6.6:1) */
+  --white: #ffffff;
+  --line: rgb(255 255 255 / 0.16); /* rules on black */
+  --line-dark: rgb(0 0 0 / 0.18); /* rules on canvas */
+
+  /* Type: one variable family, the width axis does the talking */
+  --font: 'Archivo Variable', 'Arial Narrow', system-ui, sans-serif;
+  --wdth-compressed: 62%;
+  --wdth-normal: 100%;
+  --wdth-wide: 125%;
+
+  /* Scale (1.25 minor third, body 18px) */
+  --step--1: 0.875rem;
+  --step-0: 1.125rem;
+  --step-1: 1.375rem;
+  --step-2: 1.75rem;
+  --step-3: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
+  --step-4: clamp(3rem, 1.8rem + 5vw, 6rem);
+  --step-5: clamp(4rem, 2rem + 9vw, 10rem);
+
+  /* Space */
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 3rem);
+  --space-xs: 0.5rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: clamp(2rem, 1.5rem + 2vw, 3rem);
+  --space-xl: clamp(3rem, 2rem + 4vw, 6rem);
+  --space-2xl: clamp(5rem, 3rem + 8vw, 10rem);
+  --measure: 66ch;
+  --max: 1440px;
+
+  /* Shape + motion */
+  --radius-control: 2px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-strike: cubic-bezier(0.7, 0, 0.2, 1);
+  --dur-fast: 160ms;
+  --dur: 260ms;
+  --header-h: 4rem;
+  --thumb-bar-h: calc(4.25rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --header-h: 4.5rem;
+    --thumb-bar-h: 0px; /* no thumb bar on desktop */
+  }
+}

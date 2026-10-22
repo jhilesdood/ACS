@@ -1,0 +1,133 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Shot from '../components/Shot.astro';
+import InquiryForm from '../components/InquiryForm.astro';
+import { getSite, isTbd } from '../site';
+const site = await getSite();
+
+// Safety facts parents rely on (Keystatic: Gym settings). Every value must be confirmed by the gym before launch.
+const safety = [
+  { label: 'Ages', value: site.youthAges },
+  { label: 'Coaches per class', value: site.youthRatio },
+  ...site.youthSafety,
+];
+
+const faq = [
+  {
+    q: 'My child has never done martial arts. Is that okay?',
+    a: 'Yes. The youth class is built for kids who are learning. Tell the coach it is their first class.',
+  },
+  { q: 'What should they wear and bring?', a: 'TBD: uniform or athletic clothes, water bottle, mouthguard.' },
+  { q: 'Can I watch the class?', a: 'TBD: viewing area policy.' },
+  { q: 'How do I sign up?', a: 'A parent or guardian picks the Youth membership and completes checkout and the waiver. Members must be signed up by someone 18 or older.' },
+  { q: 'What if we need to cancel?', a: 'You can manage or cancel the membership online from the Manage membership page.' },
+];
+---
+
+<Base
+  title="Youth program"
+  description="Youth martial arts at ACS MMA: discipline, confidence and fitness, taught by coaches with a clear safety policy."
+>
+  <PageHero
+    title="Youth"
+    lede="Discipline, confidence and fitness. Kids work hard, follow clear rules and leave a little braver than they came in."
+    tone="red"
+    shot={{ id: '3a', label: 'youth class group drill' }}
+  >
+    <a href="/memberships#plan-youth" class="btn btn-black">See the youth membership</a>
+  </PageHero>
+
+  <section class="section">
+    <div class="wrap split">
+      <div class="stack">
+        <h2 class="h2">What kids learn</h2>
+        <p class="lede">Strength, character, discipline. It's on our badge, and it's how the youth class runs.</p>
+      </div>
+      <div class="learn">
+        <div>
+          <h3 class="h3">Strength</h3>
+          <p>Coordination, power and stamina, built through striking basics, takedowns and ground drills.</p>
+        </div>
+        <div>
+          <h3 class="h3">Character</h3>
+          <p>Respect for coaches and partners, and finishing what they start.</p>
+        </div>
+        <div>
+          <h3 class="h3">Discipline</h3>
+          <p>Showing up, listening first and putting in the work, on the mat and off it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section on-light" aria-labelledby="safety-title">
+    <div class="wrap split">
+      <div class="stack">
+        <h2 id="safety-title" class="h2">Safety first, written down</h2>
+        <p class="lede">Parents should know exactly how we run a youth class. Here it is.</p>
+      </div>
+      <dl class="rows">
+        {
+          safety.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd class:list={{ tbd: isTbd(s.value) }}>{s.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap split">
+      <Shot id="3b" label="coach demonstrating to youth class" class="photo" />
+      <div class="stack">
+        <h2 class="h2">Parent questions</h2>
+        <div class="faq">
+          {
+            faq.map((f) => (
+              <details>
+                <summary>{f.q}</summary>
+                <p class:list={['answer', { tbd: isTbd(f.a) }]}>{f.a}</p>
+              </details>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ask">
+    <div class="wrap split">
+      <div class="stack">
+        <h2 class="h2">Ask a coach</h2>
+        <p class="lede">Not sure if it's right for your child? Send a question and a coach will reply.</p>
+      </div>
+      <InquiryForm type="youth" submitLabel="Send question" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .learn {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .learn div {
+    display: grid;
+    gap: 0.5rem;
+    padding-top: var(--space-s);
+    border-top: 4px solid var(--corner-red);
+  }
+  @media (min-width: 48rem) {
+    .learn {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .section :global(.photo) {
+    min-height: 24rem;
+    height: 100%;
+  }
+</style>

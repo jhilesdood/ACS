@@ -1,0 +1,48 @@
+---
+// The ACS badge (cut out of logo/ by scripts/logo-cutout.mjs). The nav adds a text wordmark
+// because the badge's lettering is unreadable at header size.
+import { Image } from 'astro:assets';
+import badge from '../assets/acs-badge.png';
+
+interface Props {
+  size?: 'nav' | 'footer';
+}
+const { size = 'nav' } = Astro.props;
+const px = size === 'nav' ? 48 : 220;
+---
+
+<span class:list={['logo', size]}>
+  <Image src={badge} alt="" width={px} height={px} densities={[1, 2]} loading={size === 'nav' ? 'eager' : 'lazy'} class="badge" />
+  {size === 'nav' && <span class="word" aria-hidden="true">ACS <span>MMA</span></span>}
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--white);
+  }
+  .badge {
+    flex: none;
+    border-radius: 50%;
+  }
+  .nav .badge {
+    width: 3rem;
+    height: 3rem;
+  }
+  .footer .badge {
+    width: clamp(8rem, 5rem + 10vw, 13.75rem);
+    height: auto;
+  }
+  .word {
+    font-weight: 900;
+    font-stretch: 62%;
+    font-size: 1.6rem;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .word span {
+    color: var(--corner-red);
+  }
+</style>

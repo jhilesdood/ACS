@@ -1,0 +1,10 @@
+order: 3
+name: Youth
+audience: youth
+price: TBD
+period: per month
+summary: The youth class, signed up by a parent or guardian.
+includes:
+  - Every youth class on the timetable
+  - Grading and progress check-ins
+  - Parent updates

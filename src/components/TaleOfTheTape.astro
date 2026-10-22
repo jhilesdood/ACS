@@ -1,0 +1,324 @@
+---
+// Fight team "tale of the tape".
+// Phones: a native swipe deck (scroll-snap) with a peeking next card, counter and arrow buttons.
+// Desktop with motion allowed: the section pins and the deck slides sideways as you scroll.
+import Shot from './Shot.astro';
+import { getOrdered } from '../lib/content';
+import { isTbd } from '../site';
+
+const fighters = await getOrdered('fighters');
+---
+
+<section class="tape" aria-labelledby="tape-title">
+  <div class="lead">
+    <h2 id="tape-title" class="display">Fight team</h2>
+    <p class="lede">The fighters who come out of this gym, and the records they've put together.</p>
+    <a href="/fight-team" class="btn btn-ghost">Meet the fight team</a>
+  </div>
+
+  <div class="viewport">
+    <ol class="deck" role="list" aria-label="Fighters" tabindex="0">
+      {
+        fighters.map(({ id, data }, i) => (
+          <li class="card" aria-labelledby={`f-${id}`} aria-roledescription="slide" aria-label={`${i + 1} of ${fighters.length}`}>
+            <Shot id={data.shot} label="fighter portrait, black seamless, red rim light" class="portrait" />
+            <div class="stats">
+              <p class:list={['division', { tbd: isTbd(data.division) }]}>{data.division}</p>
+              <h3 id={`f-${id}`} class:list={['name', { tbd: isTbd(data.name) }]}>
+                {data.name}
+              </h3>
+              <dl class="record" aria-label="Professional record">
+                <div>
+                  <dt>Wins</dt>
+                  <dd>{data.wins}</dd>
+                </div>
+                <div>
+                  <dt>Losses</dt>
+                  <dd>{data.losses}</dd>
+                </div>
+                <div>
+                  <dt>Draws</dt>
+                  <dd>{data.draws}</dd>
+                </div>
+              </dl>
+              {data.titles.length > 0 && (
+                <ul class="titles">
+                  {data.titles.map((t) => (
+                    <li>{t}</li>
+                  ))}
+                </ul>
+              )}
+              {data.nextBout && (
+                <p class="next-bout">
+                  Next bout: <span class:list={{ tbd: isTbd(data.nextBout) }}>{data.nextBout}</span>
+                </p>
+              )}
+              <a href={`/fight-team#${id}`} class="profile">
+                Full profile<span class="visually-hidden">: {data.name}</span>
+              </a>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <div class="controls" hidden>
+    <p class="count" aria-live="polite"><span class="cur">1</span> / {fighters.length}</p>
+    <div class="arrows">
+      <button type="button" class="arrow prev" aria-label="Previous fighter">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+      </button>
+      <button type="button" class="arrow next" aria-label="Next fighter">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { initDeck } from '../lib/deck';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const section = document.querySelector<HTMLElement>('.tape');
+  if (section) {
+    const viewport = section.querySelector<HTMLElement>('.viewport')!;
+    const deck = section.querySelector<HTMLElement>('.deck')!;
+
+    // Swipe deck controls (phones, and desktop without motion)
+    initDeck(section, { label: 'fighter' });
+
+    // Desktop: pin the section and slide the deck with the page scroll
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 64rem) and (prefers-reduced-motion: no-preference)', () => {
+      section.classList.add('pinned');
+      const distance = () => deck.scrollWidth - viewport.clientWidth;
+      gsap.to(deck, {
+        x: () => -distance(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: () => `+=${distance()}`,
+          pin: true,
+          scrub: 0.8,
+          invalidateOnRefresh: true,
+        },
+      });
+      return () => section.classList.remove('pinned');
+    });
+    document.fonts.ready.then(() => ScrollTrigger.refresh());
+  }
+</script>
+
+<style>
+  .tape {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .lead {
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+    max-width: 34rem;
+    padding-inline: var(--gutter);
+    margin-bottom: var(--space-l);
+  }
+
+  /* ---------- Swipe deck (mobile first) ---------- */
+  /* Flex, not grid: a column-flow grid makes mobile Chrome count every card as page width. */
+  .deck {
+    display: flex;
+    gap: var(--space-s);
+    margin: 0;
+    padding: 0 var(--gutter) var(--space-s);
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .deck::-webkit-scrollbar {
+    display: none;
+  }
+  .deck:focus-visible {
+    outline-offset: -3px;
+  }
+  .card {
+    /* Contain absolutely positioned children (e.g. visually-hidden text) so they can't escape the
+       scrolling deck and widen the page on phones. */
+    position: relative;
+    flex: 0 0 min(86%, 26rem);
+    scroll-snap-align: start;
+    display: grid;
+    align-content: start;
+    gap: var(--space-m);
+  }
+  .card :global(.portrait) {
+    aspect-ratio: 4 / 5;
+    width: 100%;
+  }
+  .stats {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .division {
+    color: var(--steel);
+    font-weight: 600;
+  }
+  .name {
+    font-size: clamp(2.25rem, 1.5rem + 3.5vw, 5rem);
+    text-transform: uppercase;
+    color: var(--white);
+    overflow-wrap: anywhere;
+  }
+  .name.tbd {
+    color: var(--steel);
+  }
+  .record {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0.4rem 0 0;
+    border-block: 1px solid var(--line);
+  }
+  .record div {
+    padding: 0.75rem 0;
+  }
+  .record div + div {
+    padding-left: var(--space-s);
+    border-left: 1px solid var(--line);
+  }
+  .record dt {
+    color: var(--steel);
+    font-size: 0.9375rem;
+  }
+  .record dd {
+    margin: 0;
+    font-size: clamp(3.25rem, 2rem + 6vw, 10rem);
+    font-weight: 900;
+    font-stretch: 62%;
+    line-height: 0.85;
+    font-variant-numeric: tabular-nums;
+  }
+  .record div:first-child dd {
+    color: var(--corner-red);
+  }
+  .titles {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+  .profile {
+    justify-self: start;
+    padding-block: 0.6rem;
+    font-weight: 700;
+    text-decoration-color: var(--corner-red);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 5px;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-s) var(--gutter) 0;
+  }
+  .controls[hidden] {
+    display: none;
+  }
+  .count {
+    font-weight: 800;
+    font-stretch: 62%;
+    font-size: var(--step-2);
+    color: var(--steel);
+    font-variant-numeric: tabular-nums;
+  }
+  .count .cur {
+    color: var(--white);
+  }
+  .arrows {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .arrow {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 2px solid var(--canvas);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--canvas);
+    cursor: pointer;
+  }
+  .arrow svg {
+    width: 1.4rem;
+    height: 1.4rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+  }
+  .arrow:active:not(:disabled) {
+    background: var(--canvas);
+    color: var(--black);
+  }
+  .arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  @media (min-width: 48rem) {
+    .card {
+      flex-basis: min(78%, 52rem);
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      align-items: end;
+    }
+  }
+
+  /* ---------- Desktop pinned (class added only when motion is allowed) ---------- */
+  .tape.pinned {
+    --pin-h: calc(100vh - var(--header-h) - var(--space-l) * 2);
+    display: grid;
+    grid-template-columns: minmax(18rem, 30vw) minmax(0, 1fr);
+    align-items: end;
+    height: 100vh;
+    padding-block: calc(var(--header-h) + var(--space-l)) var(--space-l);
+  }
+  .tape.pinned .lead {
+    margin: 0;
+  }
+  .tape.pinned .viewport {
+    height: var(--pin-h);
+    overflow: hidden;
+  }
+  .tape.pinned .deck {
+    height: 100%;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding: 0 var(--gutter) 0 0;
+    gap: var(--space-xl);
+  }
+  .tape.pinned .card {
+    flex: 0 0 auto;
+    height: 100%;
+    grid-template-columns: auto 24rem;
+    grid-template-rows: 100%;
+    align-items: end;
+    gap: var(--space-l);
+  }
+  .tape.pinned .card :global(.portrait) {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 4 / 5;
+  }
+  .tape.pinned .name {
+    font-size: clamp(2.5rem, 1rem + 3vw, 4.25rem);
+  }
+  .tape.pinned .controls {
+    display: none;
+  }
+</style>

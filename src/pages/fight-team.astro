@@ -1,0 +1,127 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Shot from '../components/Shot.astro';
+import { getOrdered } from '../lib/content';
+import { isTbd } from '../site';
+
+const fighters = await getOrdered('fighters');
+---
+
+<Base title="Fight team" description="The ACS MMA fight team: fighters, professional records, titles and upcoming bouts.">
+  <PageHero
+    title="Fight team"
+    lede="Pro fighters who train here, on the same mats as everyone else."
+    shot={{ id: '4a', label: 'fight team group portrait' }}
+  />
+
+  {
+    fighters.map(({ id, data }) => (
+      <article class="fighter section" id={id} aria-labelledby={`${id}-name`}>
+        <div class="wrap grid">
+          <Shot id={data.shot} label="fighter portrait, black seamless, red rim light" class="portrait" />
+          <div class="stack">
+            <p class:list={['muted', { tbd: isTbd(data.division) }]}>{data.division}</p>
+            <h2 id={`${id}-name`} class:list={['name', { tbd: isTbd(data.name) }]}>
+              {data.name}
+              {data.nickname && <span class="nick">"{data.nickname}"</span>}
+            </h2>
+            <dl class="record" aria-label="Professional record">
+              <div>
+                <dt>Wins</dt>
+                <dd>{data.wins}</dd>
+              </div>
+              <div>
+                <dt>Losses</dt>
+                <dd>{data.losses}</dd>
+              </div>
+              <div>
+                <dt>Draws</dt>
+                <dd>{data.draws}</dd>
+              </div>
+            </dl>
+            {data.titles.length > 0 && (
+              <div>
+                <h3 class="h3">Titles</h3>
+                <ul>
+                  {data.titles.map((t) => (
+                    <li>{t}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {data.nextBout && (
+              <p>
+                <strong>Next bout:</strong> <span class:list={{ tbd: isTbd(data.nextBout) }}>{data.nextBout}</span>
+              </p>
+            )}
+            {data.tapology && (
+              <a href={data.tapology} class="btn btn-ghost" rel="noopener" target="_blank">
+                Full record on Tapology<span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </article>
+    ))
+  }
+</Base>
+
+<style>
+  .grid {
+    display: grid;
+    gap: var(--space-l) var(--space-xl);
+    align-items: end;
+  }
+  @media (min-width: 48rem) {
+    .grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+  }
+  .fighter {
+    scroll-margin-top: var(--header-h);
+  }
+  .fighter :global(.portrait) {
+    aspect-ratio: 4 / 5;
+  }
+  .name {
+    font-size: var(--step-4);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+  .nick {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.4em;
+    color: var(--corner-red);
+  }
+  .record {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    margin: 0;
+    border-block: 1px solid var(--line);
+  }
+  .record div {
+    padding: var(--space-s) 0;
+  }
+  .record div + div {
+    padding-left: var(--space-m);
+    border-left: 1px solid var(--line);
+  }
+  .record dt {
+    color: var(--steel);
+    font-size: 1rem;
+  }
+  .record dd {
+    margin: 0;
+    font-size: var(--step-5);
+    font-weight: 900;
+    font-stretch: 62%;
+    line-height: 0.85;
+    font-variant-numeric: tabular-nums;
+  }
+  .record div:first-child dd {
+    color: var(--corner-red);
+  }
+</style>

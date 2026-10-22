@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { PUBLIC_WAIVER_URL } from 'astro:env/client';
+---
+
+<Base title="Liability waiver" description="The ACS MMA liability waiver. Every member signs before training.">
+  <PageHero title="Waiver" lede="Martial arts involve physical contact and a risk of injury. Every member signs this waiver before training. For anyone under 18, a parent or legal guardian signs." />
+  <section class="section">
+    <div class="wrap prose">
+      <p class="tbd">
+        TBD: full waiver text, supplied by the gym's lawyer or insurer. Do not launch online sign-up without it.
+      </p>
+      {PUBLIC_WAIVER_URL && <p><a class="btn btn-red" href={PUBLIC_WAIVER_URL}>Sign the waiver online</a></p>}
+    </div>
+  </section>
+</Base>

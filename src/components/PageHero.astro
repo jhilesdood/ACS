@@ -1,0 +1,74 @@
+---
+import Shot from './Shot.astro';
+
+interface Props {
+  title: string;
+  lede: string;
+  shot?: { id: string; label: string };
+  tone?: 'black' | 'red';
+}
+const { title, lede, shot, tone = 'black' } = Astro.props;
+---
+
+<section class:list={['page-hero', { 'on-red': tone === 'red', 'has-shot': shot }]}>
+  {shot && <Shot id={shot.id} label={shot.label} class="bg" tone={tone} />}
+  <div class="wrap inner">
+    <h1 class="title">{title}</h1>
+    <p class="lede">{lede}</p>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .page-hero {
+    position: relative;
+    display: grid;
+    align-items: end;
+    padding-top: calc(var(--header-h) + env(safe-area-inset-top) + var(--space-xl));
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .page-hero.has-shot {
+    min-height: 56svh;
+  }
+  @media (min-width: 48rem) {
+    .page-hero {
+      min-height: 62svh;
+    }
+  }
+  .page-hero.on-red {
+    background: var(--corner-red);
+    color: var(--white);
+    border-bottom: 0;
+  }
+  .page-hero > :global(.bg) {
+    position: absolute;
+    inset: 0;
+  }
+  .has-shot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.1) 70%);
+    pointer-events: none;
+  }
+  .on-red.has-shot::after {
+    background: linear-gradient(to top, rgb(122 0 16 / 0.9), transparent 70%);
+  }
+  .inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+  }
+  .title {
+    font-size: clamp(3.5rem, 1rem + 11vw, 11rem);
+    font-weight: 900;
+    line-height: 0.84;
+    text-transform: uppercase;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+</style>

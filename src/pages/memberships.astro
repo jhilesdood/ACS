@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import PricingTable from '../components/PricingTable.astro';
+
+const faq = [
+  {
+    q: 'What happens after I pay?',
+    a: 'You get an email receipt, then sign the liability waiver online and pick your first class from the schedule.',
+  },
+  {
+    q: 'Who can sign up for the youth membership?',
+    a: "A parent or legal guardian, 18 or older. You'll add your child's details at checkout and sign the waiver on their behalf.",
+  },
+  {
+    q: 'How do I update my card or cancel?',
+    a: 'Go to Manage membership and enter the email you signed up with. Terms for cancelling are set out in the membership terms.',
+  },
+  { q: 'Do you offer personal training?', a: 'Yes, separately. Start with a consult on the personal training page.' },
+];
+---
+
+<Base title="Memberships" description="ACS MMA memberships for adults and youth. Sign up online.">
+  <div class="spacer"></div>
+  <PricingTable headingLevel="h1" checkout />
+
+  <section class="section">
+    <div class="wrap split">
+      <h2 class="h2">Before you join</h2>
+      <div class="faq">
+        {
+          faq.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p class="answer">{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .spacer {
+    height: var(--header-h);
+  }
+</style>

@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /keystatic
+Disallow: /api/
+Sitemap: https://example.com/sitemap-index.xml

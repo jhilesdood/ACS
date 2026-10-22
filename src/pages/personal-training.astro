@@ -1,0 +1,123 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Shot from '../components/Shot.astro';
+import InquiryForm from '../components/InquiryForm.astro';
+import { getOrdered } from '../lib/content';
+import { isTbd } from '../site';
+
+const coaches = (await getOrdered('coaches')).filter((c) => c.data.trainsPrivate);
+---
+
+<Base
+  title="Personal training"
+  description="One-to-one MMA, jiu-jitsu, striking and conditioning coaching at ACS MMA. Book a free consult."
+>
+  <PageHero
+    title="Personal training"
+    lede="One coach, one plan, built around your goal. Start with a consult so we can match you with the right coach."
+    shot={{ id: '7', label: 'one-to-one pad session' }}
+  >
+    <a href="#consult" class="btn btn-red">Book a training consult</a>
+  </PageHero>
+
+  <section class="section on-light">
+    <div class="wrap split">
+      <h2 class="h2">How it works</h2>
+      <ol class="steps">
+        <li>
+          <h3 class="h3">Book a consult</h3>
+          <p>Tell us your experience, goals and schedule.</p>
+        </li>
+        <li>
+          <h3 class="h3">Meet your coach</h3>
+          <p>We match you with a coach for your goal and they map out your plan.</p>
+        </li>
+        <li>
+          <h3 class="h3">Train one-to-one</h3>
+          <p>Every rep coached. Progress checked as you go. Pricing is set at your consult.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="coaches-title">
+    <div class="wrap">
+      <h2 id="coaches-title" class="h2 head">Coaches who train privately</h2>
+      <ul class="coaches" role="list">
+        {
+          coaches.map(({ data }) => (
+            <li>
+              <Shot id={data.shot} label="coach portrait" class="portrait" />
+              <h3 class:list={['h3', { tbd: isTbd(data.name) }]}>{data.name}</h3>
+              <p class="muted">{data.role}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="consult">
+    <div class="wrap split">
+      <div class="stack">
+        <h2 class="h2">Book a training consult</h2>
+        <p class="lede">A coach replies by email to set a time.</p>
+      </div>
+      <InquiryForm type="consult" submitLabel="Book a training consult" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line-dark);
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    column-gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-bottom: 1px solid var(--line-dark);
+  }
+  .steps li::before {
+    content: counter(step);
+    grid-row: 1 / span 2;
+    font-size: var(--step-4);
+    font-weight: 900;
+    font-stretch: 62%;
+    line-height: 0.8;
+    color: var(--corner-red);
+  }
+  .steps p {
+    margin-top: 0.4rem;
+    color: var(--steel-dark);
+  }
+  .head {
+    margin-bottom: var(--space-l);
+  }
+  .coaches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-l) var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .coaches li {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .coaches :global(.portrait) {
+    aspect-ratio: 4 / 5;
+    margin-bottom: 0.6rem;
+  }
+  #consult {
+    scroll-margin-top: var(--header-h);
+  }
+</style>

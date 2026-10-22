@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { PUBLIC_WAIVER_URL } from 'astro:env/client';
+---
+
+<Base title="You're in" noindex description="Your ACS MMA membership is set up. Sign the waiver before your first class.">
+  <PageHero title="You're in" lede="Payment received. A receipt is on its way to your email." tone="red" />
+
+  <section class="section">
+    <div class="wrap split">
+      <h2 class="h2">One more step</h2>
+      <ol class="next">
+        <li>
+          <h3 class="h3">Sign the waiver</h3>
+          <p>Everyone signs before training. For the youth membership, the parent or guardian signs for the child.</p>
+          {
+            PUBLIC_WAIVER_URL ? (
+              <a class="btn btn-red" href={PUBLIC_WAIVER_URL}>Sign the waiver</a>
+            ) : (
+              <p class="tbd">The online waiver link is not set up yet. Staff will send it to you by email.</p>
+            )
+          }
+        </li>
+        <li>
+          <h3 class="h3">Pick your first class</h3>
+          <p>Check the timetable, then arrive a little early so a coach can meet you.</p>
+          <a class="btn btn-ghost" href="/schedule">See the schedule</a>
+        </li>
+      </ol>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .next {
+    display: grid;
+    gap: var(--space-l);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .next li {
+    counter-increment: step;
+    display: grid;
+    gap: var(--space-s);
+    justify-items: start;
+    padding-top: var(--space-m);
+    border-top: 4px solid var(--corner-red);
+  }
+  .next h3::before {
+    content: counter(step) '. ';
+    color: var(--corner-red);
+  }
+</style>

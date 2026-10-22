@@ -1,0 +1,206 @@
+---
+import Shot from './Shot.astro';
+import { getSite, isTbd } from '../site';
+const site = await getSite();
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <Shot id="1" label="hero slow-motion sparring loop" class="bg" fence />
+  <div class="scrim" aria-hidden="true"></div>
+
+  <div class="content wrap">
+    <h1 id="hero-title" class="title">
+      <span class="visually-hidden">Train like you mean it</span>
+      <span class="set wide" aria-hidden="true"><span class="line">Train like</span><span class="line">you mean it</span></span>
+      <span class="set narrow" aria-hidden="true"><span class="line">Train</span><span class="line">like you</span><span class="line">mean it</span></span>
+    </h1>
+
+    <div class="below">
+      <p class="lede">
+        MMA, Brazilian jiu-jitsu, Muay Thai, wrestling and boxing in <span class:list={{ tbd: isTbd(site.city) }}>{site.city}</span>.
+        Adult classes, a youth program and one-to-one coaching.
+      </p>
+      <div class="ctas">
+        <a href="/memberships" class="btn btn-red">See memberships</a>
+        <a href="/personal-training#consult" class="btn btn-ghost">Book a training consult</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Kept free of imports so it runs before first paint; the parallax (GSAP) is a separate script below.
+  // Size each headline line so its final (125% wide) state fills the container exactly,
+  // then let the CSS expand it from compressed. Runs once fonts are ready.
+  const hero = document.querySelector<HTMLElement>('.hero')!;
+  const title = hero.querySelector<HTMLElement>('.title')!;
+
+  // Height cap from the *small* viewport (svh): it doesn't change when a phone's address bar
+  // shows or hides, so the headline never resizes mid-scroll.
+  const capProbe = document.createElement('div');
+  capProbe.style.cssText = 'position:absolute;visibility:hidden;height:30svh;width:0';
+  hero.append(capProbe);
+
+  const fit = () => {
+    const set = [...title.querySelectorAll<HTMLElement>('.set')].find((s) => s.offsetParent !== null);
+    if (!set) return;
+    const available = title.clientWidth;
+    // Measure at a small size (width scales linearly with font size). Measuring large would
+    // briefly overflow a phone screen and make mobile browsers zoom the page out.
+    const probe = 20;
+    set.classList.add('measuring');
+    set.style.fontSize = `${probe}px`;
+    const widest = Math.max(...[...set.querySelectorAll<HTMLElement>('.line')].map((l) => l.getBoundingClientRect().width));
+    set.classList.remove('measuring');
+    const size = Math.min((available / widest) * probe * 0.97, capProbe.offsetHeight);
+    set.style.fontSize = `${size}px`;
+  };
+
+  document.fonts.ready.then(() => {
+    fit();
+    title.classList.add('ready');
+  });
+
+  // Refit only when the width changes; height-only resizes come from the mobile address bar.
+  let lastWidth = innerWidth;
+  let raf = 0;
+  addEventListener('resize', () => {
+    if (innerWidth === lastWidth) return;
+    lastWidth = innerWidth;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(fit);
+  });
+
+</script>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+  const hero = document.querySelector<HTMLElement>('.hero')!;
+
+  // Parallax: the background travels slower than the page while the copy drifts up and fades.
+  // Transform and opacity only; skipped entirely when reduced motion is requested.
+  gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
+    const tl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+    });
+    tl.to(hero.querySelector('.bg'), { yPercent: 18 }, 0)
+      .to(hero.querySelector('.content'), { yPercent: -8 }, 0)
+      // Fade the words, never the buttons (a faded button reads as disabled).
+      .to(hero.querySelectorAll('.title, .lede'), { opacity: 0.4 }, 0);
+  });
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    /* Fill the screen above the thumb bar on phones */
+    min-height: calc(100svh - var(--thumb-bar-h));
+    align-items: end;
+    overflow: hidden;
+  }
+  .hero > :global(.bg) {
+    position: absolute;
+    inset: -6% 0; /* extra height so the slower-moving background never shows an edge */
+    will-change: transform;
+  }
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.92) 0%, rgb(0 0 0 / 0.55) 40%, rgb(0 0 0 / 0.1) 75%);
+  }
+  .content {
+    position: relative;
+    padding-top: calc(var(--header-h) + env(safe-area-inset-top) + var(--space-l));
+    padding-bottom: var(--space-l);
+  }
+
+  .title {
+    font-weight: 900;
+    line-height: 0.84;
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .set {
+    display: block;
+    font-size: clamp(3rem, 9vw, 12rem); /* pre-fit fallback; script replaces it */
+  }
+  .line {
+    display: block;
+    width: max-content;
+    white-space: nowrap;
+    font-stretch: 125%;
+  }
+  .narrow {
+    display: none;
+  }
+  @media (max-width: 40rem) {
+    .wide {
+      display: none;
+    }
+    .narrow {
+      display: block;
+    }
+  }
+
+  /* The signature moment: compressed to wide, once, like a strike landing */
+  :global(.js) .title:not(.ready) {
+    visibility: hidden;
+  }
+  .title.ready .line {
+    animation: strike 700ms var(--ease-strike) both;
+  }
+  .title.ready .line:nth-child(2) {
+    animation-delay: 70ms;
+  }
+  .title.ready .line:nth-child(3) {
+    animation-delay: 140ms;
+  }
+  .measuring .line {
+    animation: none !important;
+    font-stretch: 125%;
+  }
+  @keyframes strike {
+    from {
+      font-stretch: 62%;
+    }
+    to {
+      font-stretch: 125%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .title.ready .line {
+      animation: none;
+    }
+  }
+
+  .below {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-m) var(--space-l);
+    margin-top: var(--space-l);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .lede {
+    color: var(--canvas);
+  }
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  @media (max-width: 30rem) {
+    .ctas,
+    .ctas .btn {
+      width: 100%;
+    }
+  }
+</style>

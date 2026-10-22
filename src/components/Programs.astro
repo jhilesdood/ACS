@@ -1,0 +1,248 @@
+---
+import { getOrdered } from '../lib/content';
+import Shot from './Shot.astro';
+import { getSite, isTbd } from '../site';
+const site = await getSite();
+
+const disciplines = await getOrdered('disciplines');
+const sparring = site.youthSafety.find((s) => s.label === 'Sparring policy')?.value ?? 'TBD';
+---
+
+<section class="band adults" aria-labelledby="adults-title">
+  <div class="wrap grid">
+    <div class="intro">
+      <h2 id="adults-title" class="display">Adults</h2>
+      <p class="lede">
+        Four disciplines under one roof. Start in fundamentals, move up when your coach says you're ready,
+        and train with people who show up.
+      </p>
+      <a href="/adults" class="btn btn-ghost">See adult classes</a>
+    </div>
+
+    <ul class="disciplines" role="list">
+      {
+        disciplines.map(({ id, data }) => (
+          <li>
+            <a href={`/adults#${id}`}>
+              <span class="d-name">{data.name}</span>
+              <span class="d-short">{data.short}</span>
+              <span class="d-summary">{data.summary}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="band youth on-red" aria-labelledby="youth-title">
+  <div class="wrap grid flip">
+    <Shot id="3a" label="youth class group drill" tone="red" class="photo" />
+    <div class="intro">
+      <h2 id="youth-title" class="display">Youth</h2>
+      <p class="lede">
+        Discipline, confidence and fitness, taught by coaches who know how kids learn. Hard work, clear
+        rules, and no one gets thrown in the deep end.
+      </p>
+      <dl class="facts">
+        <div>
+          <dt>Ages</dt>
+          <dd class:list={{ tbd: isTbd(site.youthAges) }}>{site.youthAges}</dd>
+        </div>
+        <div>
+          <dt>Coaches per class</dt>
+          <dd class:list={{ tbd: isTbd(site.youthRatio) }}>{site.youthRatio}</dd>
+        </div>
+        <div>
+          <dt>Sparring policy</dt>
+          <dd class:list={{ tbd: isTbd(sparring) }}>{sparring}</dd>
+        </div>
+      </dl>
+      <a href="/youth" class="btn btn-black">See the youth program</a>
+    </div>
+  </div>
+</section>
+
+<section class="band training on-light" aria-labelledby="pt-title">
+  <div class="wrap grid">
+    <div class="intro">
+      <h2 id="pt-title" class="display">Personal training</h2>
+      <p class="lede">
+        One coach, one plan, built around your goal. Getting fight-ready, learning from zero or getting in
+        the best shape of your life.
+      </p>
+      <a href="/personal-training#consult" class="btn btn-red">Book a training consult</a>
+    </div>
+    <ol class="steps">
+      <li>
+        <h3>Book a consult</h3>
+        <p>Tell us where you are and where you want to be.</p>
+      </li>
+      <li>
+        <h3>Get your plan</h3>
+        <p>Your coach maps out sessions, focus areas and how often to train.</p>
+      </li>
+      <li>
+        <h3>Train one-to-one</h3>
+        <p>Every rep coached. Progress checked as you go.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<style>
+  .band {
+    padding-block: var(--space-2xl);
+  }
+  .on-red {
+    background: var(--corner-red);
+    color: var(--white);
+  }
+  .on-light {
+    background: var(--canvas);
+    color: var(--black);
+  }
+  .grid {
+    display: grid;
+    gap: var(--space-xl) var(--space-l);
+    align-items: start;
+  }
+  @media (min-width: 60rem) {
+    .grid {
+      grid-template-columns: 5fr 7fr;
+    }
+    .grid.flip {
+      grid-template-columns: 6fr 6fr;
+      align-items: stretch;
+    }
+  }
+  .intro {
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+  }
+  @media (min-width: 60rem) {
+    .adults .intro,
+    .training .intro {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-m));
+    }
+  }
+
+  /* Adults: discipline rows read like a fight card */
+  .disciplines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .disciplines a {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    padding-block: var(--space-m);
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+  }
+  @media (min-width: 40rem) {
+    .disciplines a {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      column-gap: var(--space-m);
+    }
+    .d-summary {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+  }
+  .d-name {
+    font-size: var(--step-3);
+    font-weight: 850;
+    font-stretch: 62%;
+    line-height: 0.95;
+    text-transform: uppercase;
+    transition: color var(--dur-fast) ease;
+  }
+  .d-short {
+    color: var(--steel);
+    font-size: 1rem;
+  }
+  .d-summary {
+    color: var(--canvas);
+  }
+  .disciplines a:hover .d-name {
+    color: var(--corner-red);
+  }
+
+  /* Youth */
+  .youth :global(.photo) {
+    aspect-ratio: 4 / 3;
+  }
+  @media (min-width: 60rem) {
+    .youth :global(.photo) {
+      aspect-ratio: auto;
+      min-height: 22rem;
+    }
+  }
+  .facts {
+    display: grid;
+    gap: 0;
+    width: 100%;
+    margin: 0;
+    border-top: 1px solid rgb(255 255 255 / 0.35);
+  }
+  .facts div {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 1rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.35);
+  }
+  .facts dt {
+    font-weight: 700;
+  }
+  .facts dd {
+    margin: 0;
+  }
+  @media (max-width: 30rem) {
+    .facts div {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+  }
+
+  /* Personal training: a real sequence, so it's numbered */
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line-dark);
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    column-gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-bottom: 1px solid var(--line-dark);
+  }
+  .steps li::before {
+    content: counter(step);
+    grid-row: 1 / span 2;
+    font-size: var(--step-4);
+    font-weight: 900;
+    font-stretch: 62%;
+    line-height: 0.8;
+    color: var(--corner-red);
+    font-variant-numeric: tabular-nums;
+  }
+  .steps h3 {
+    font-size: var(--step-2);
+    text-transform: uppercase;
+  }
+  .steps p {
+    margin-top: 0.4rem;
+    color: var(--steel-dark);
+  }
+</style>

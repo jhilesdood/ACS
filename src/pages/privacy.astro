@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+---
+
+<Base title="Privacy" description="How ACS MMA collects and uses your information.">
+  <PageHero title="Privacy" lede="What we collect, why, and who processes it." />
+  <section class="section">
+    <div class="wrap prose">
+      <p class="tbd">TBD: final policy reviewed by the gym's lawyer. The draft below describes how this website works.</p>
+      <h2>What the website collects</h2>
+      <ul>
+        <li>Forms (consults, questions, messages): name, email, optional phone and your message. Sent to the gym by email.</li>
+        <li>Memberships: name, email, phone, billing address and payment details, handled by Stripe. Youth sign-ups also collect the guardian's and child's names and the child's date of birth.</li>
+      </ul>
+      <h2>Who processes it</h2>
+      <ul>
+        <li>Stripe: payments and subscriptions.</li>
+        <li>Resend: delivering form and membership emails to the gym.</li>
+        <li>Vercel: hosting.</li>
+        <li class="tbd">TBD: waiver provider.</li>
+      </ul>
+      <h2>Photos of members</h2>
+      <p class="tbd">TBD: photo and video consent, including written parental consent for anyone under 18.</p>
+      <h2>Contact</h2>
+      <p class="tbd">TBD: who to contact about your data.</p>
+    </div>
+  </section>
+</Base>

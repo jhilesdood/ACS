@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { PUBLIC_PORTAL_LOGIN_URL } from 'astro:env/client';
+---
+
+<Base title="Manage membership" noindex description="Update your card, see invoices or cancel your ACS MMA membership.">
+  <PageHero
+    title="Your membership"
+    lede="Update your card, download invoices or change your membership. You'll get a one-time code by email to sign in."
+  >
+    {
+      PUBLIC_PORTAL_LOGIN_URL ? (
+        <a class="btn btn-red" href={PUBLIC_PORTAL_LOGIN_URL}>Manage membership</a>
+      ) : (
+        <p class="tbd">Online membership management is not switched on yet. Contact the gym for changes.</p>
+      )
+    }
+  </PageHero>
+</Base>

@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import InquiryForm from '../components/InquiryForm.astro';
+import { getSite, isTbd } from '../site';
+const site = await getSite();
+
+const mapQuery = isTbd(site.address) ? '' : encodeURIComponent(`${site.address}, ${site.city}`);
+---
+
+<Base title="Visit and contact" description="ACS MMA address, opening hours and contact details.">
+  <PageHero title="Visit" lede="Come and see the gym, or send us a message." />
+
+  <section class="section">
+    <div class="wrap split">
+      <div class="stack">
+        <dl class="rows info">
+          <div>
+            <dt>Address</dt>
+            <dd class:list={{ tbd: isTbd(site.address) }}>{site.address}<br /><span class:list={{ tbd: isTbd(site.city) }}>{site.city}</span></dd>
+          </div>
+          {
+            site.hours.map((h) => (
+              <div>
+                <dt>{h.days}</dt>
+                <dd class:list={{ tbd: isTbd(h.time) }}>{h.time}</dd>
+              </div>
+            ))
+          }
+          <div>
+            <dt>Phone</dt>
+            <dd class:list={{ tbd: isTbd(site.phone) }}>
+              {isTbd(site.phone) ? site.phone : <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>}
+            </dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd class:list={{ tbd: isTbd(site.email) }}>
+              {isTbd(site.email) ? site.email : <a href={`mailto:${site.email}`}>{site.email}</a>}
+            </dd>
+          </div>
+        </dl>
+        {
+          mapQuery ? (
+            <a class="btn btn-ghost" href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`} target="_blank" rel="noopener">
+              Get directions<span class="visually-hidden"> (opens Google Maps in a new tab)</span>
+            </a>
+          ) : (
+            <p class="tbd">Directions link appears once the address is set.</p>
+          )
+        }
+      </div>
+
+      <div class="stack">
+        <h2 class="h2">Send a message</h2>
+        <InquiryForm type="contact" submitLabel="Send message" />
+      </div>
+    </div>
+  </section>
+</Base>

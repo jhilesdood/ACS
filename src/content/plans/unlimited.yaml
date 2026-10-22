@@ -1,0 +1,13 @@
+order: 2
+name: Unlimited
+audience: adult
+price: TBD
+period: per month
+summary: Train every session on the timetable.
+includes:
+  - Every adult class
+  - All disciplines
+  - Open mat
+  - Fight team tryouts when invited
+featured: true
+badge: Recommended

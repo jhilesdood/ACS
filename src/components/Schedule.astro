@@ -1,0 +1,315 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  headingLevel?: 'h1' | 'h2';
+  title?: string;
+}
+const { headingLevel = 'h2', title = 'This week on the mats' } = Astro.props;
+const Heading = headingLevel;
+const DayHeading = headingLevel === 'h1' ? 'h2' : 'h3';
+
+const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+const dayNames: Record<string, string> = {
+  Mon: 'Monday',
+  Tue: 'Tuesday',
+  Wed: 'Wednesday',
+  Thu: 'Thursday',
+  Fri: 'Friday',
+  Sat: 'Saturday',
+  Sun: 'Sunday',
+};
+const classes = (await getCollection('schedule'))
+  .map((c) => c.data)
+  .sort((a, b) => a.start.localeCompare(b.start));
+const disciplines = [...new Set(classes.map((c) => c.discipline))];
+---
+
+<section class="schedule" aria-labelledby="schedule-title">
+  <div class="wrap">
+    <div class="head">
+      <Heading id="schedule-title" class="display">{title}</Heading>
+      <p class="sample">Sample timetable for layout. The real schedule replaces it before launch.</p>
+    </div>
+
+    <div class="controls" hidden>
+      <div class="days" role="tablist" aria-label="Day">
+        {
+          days.map((d) => (
+            <button type="button" role="tab" id={`tab-${d}`} aria-controls={`day-${d}`} aria-selected="false" tabindex="-1" data-day={d}>
+              <span class="d-short" aria-hidden="true">{d}</span>
+              <span class="visually-hidden">{dayNames[d]}</span>
+            </button>
+          ))
+        }
+      </div>
+      <fieldset class="filters">
+        <legend class="visually-hidden">Filter by discipline</legend>
+        <button type="button" class="chip" aria-pressed="true" data-filter="all">All</button>
+        {
+          disciplines.map((d) => (
+            <button type="button" class="chip" aria-pressed="false" data-filter={d}>
+              {d}
+            </button>
+          ))
+        }
+      </fieldset>
+    </div>
+
+    <p class="status visually-hidden" aria-live="polite"></p>
+
+    <div class="days-list">
+      {
+        days.map((d) => {
+          const list = classes.filter((c) => c.day === d);
+          return (
+            <section class="day" id={`day-${d}`} role="tabpanel" aria-labelledby={`tab-${d}`} data-day={d}>
+              <DayHeading class="day-name">{dayNames[d]}</DayHeading>
+              {list.length ? (
+                <ul role="list">
+                  {list.map((c) => (
+                    <li data-discipline={c.discipline}>
+                      <span class="time">
+                        <time>{c.start}</time>–<time>{c.end}</time>
+                      </span>
+                      <span class="cls">{c.title}</span>
+                      <span class="disc">{c.discipline}</span>
+                      <span class="level">{c.level}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p class="empty">No classes. Rest day.</p>
+              )}
+              <p class="empty filtered" hidden>
+                No classes match this filter today. Pick another day or show all disciplines.
+              </p>
+            </section>
+          );
+        })
+      }
+    </div>
+
+    <a href="/memberships" class="btn btn-red cta">See memberships</a>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.schedule').forEach((root) => {
+    const controls = root.querySelector<HTMLElement>('.controls')!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('.day')];
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('.chip')];
+    const status = root.querySelector<HTMLElement>('.status')!;
+    controls.hidden = false;
+    root.classList.add('enhanced');
+
+    let filter = 'all';
+    const order = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let day = order[new Date().getDay()];
+
+    const render = (announce = false) => {
+      tabs.forEach((t) => {
+        const on = t.dataset.day === day;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach((p) => (p.hidden = p.dataset.day !== day));
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.filter === filter)));
+
+      const panel = panels.find((p) => p.dataset.day === day)!;
+      const rows = [...panel.querySelectorAll<HTMLElement>('li')];
+      let shown = 0;
+      rows.forEach((r) => {
+        const match = filter === 'all' || r.dataset.discipline === filter;
+        r.hidden = !match;
+        if (match) shown++;
+      });
+      const filtered = panel.querySelector<HTMLElement>('.filtered')!;
+      filtered.hidden = !(rows.length > 0 && shown === 0);
+      if (announce) {
+        const name = panel.querySelector('.day-name')!.textContent;
+        status.textContent = `${shown} ${shown === 1 ? 'class' : 'classes'} on ${name}${filter === 'all' ? '' : `, ${filter}`}`;
+      }
+    };
+
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => {
+        day = t.dataset.day!;
+        render(true);
+      });
+      t.addEventListener('keydown', (e) => {
+        const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        const next = tabs[(i + step + tabs.length) % tabs.length];
+        day = next.dataset.day!;
+        render(true);
+        next.focus();
+      });
+    });
+    chips.forEach((c) =>
+      c.addEventListener('click', () => {
+        filter = c.dataset.filter!;
+        render(true);
+      }),
+    );
+    render();
+  });
+</script>
+
+<style>
+  .schedule {
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--line);
+  }
+  .head {
+    display: grid;
+    gap: var(--space-s);
+    margin-bottom: var(--space-l);
+  }
+  .sample {
+    color: var(--steel);
+    font-style: italic;
+  }
+  .controls {
+    display: grid;
+    gap: var(--space-m);
+    margin-bottom: var(--space-l);
+  }
+  .controls[hidden] {
+    display: none;
+  }
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border: 1px solid var(--line);
+  }
+  .days button {
+    min-height: 3.5rem;
+    border: 0;
+    border-right: 1px solid var(--line);
+    background: transparent;
+    color: var(--canvas);
+    font: inherit;
+    font-weight: 800;
+    font-stretch: 62%;
+    font-size: clamp(1.05rem, 0.6rem + 2.4vw, 1.75rem);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--dur-fast) ease;
+  }
+  .days button:last-child {
+    border-right: 0;
+  }
+  .days button:hover {
+    background: rgb(255 255 255 / 0.08);
+  }
+  .days button[aria-selected='true'] {
+    background: var(--corner-red);
+    color: var(--white);
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .chip {
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--canvas);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .chip:hover {
+    border-color: var(--canvas);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--canvas);
+    border-color: var(--canvas);
+    color: var(--black);
+  }
+
+  .days-list {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .enhanced .days-list {
+    min-height: 18rem;
+  }
+  .enhanced .day-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .day-name {
+    margin-bottom: var(--space-s);
+    font-size: var(--step-3);
+    text-transform: uppercase;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  li {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 0.15rem var(--space-m);
+    padding-block: var(--space-s);
+    border-bottom: 1px solid var(--line);
+  }
+  li[hidden] {
+    display: none;
+  }
+  .time {
+    grid-row: span 2;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .cls {
+    font-size: var(--step-2);
+    font-weight: 850;
+    font-stretch: 62%;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .disc,
+  .level {
+    color: var(--steel);
+    font-size: 1rem;
+  }
+  .disc {
+    display: none;
+  }
+  @media (min-width: 48rem) {
+    li {
+      grid-template-columns: 10rem 1.4fr 1fr 1fr;
+      align-items: baseline;
+    }
+    .time {
+      grid-row: auto;
+    }
+    .disc {
+      display: block;
+    }
+  }
+  .empty {
+    padding-block: var(--space-m);
+    color: var(--steel);
+  }
+  .cta {
+    margin-top: var(--space-l);
+  }
+</style>

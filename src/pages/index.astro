@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Programs from '../components/Programs.astro';
+import TaleOfTheTape from '../components/TaleOfTheTape.astro';
+import Schedule from '../components/Schedule.astro';
+import PricingTable from '../components/PricingTable.astro';
+import { getSite, isTbd } from '../site';
+
+const site = await getSite();
+const known = (v: string) => (isTbd(v) ? undefined : v);
+// Structured data for search. Placeholder (TBD) facts are left out until they're real.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SportsActivityLocation',
+  name: 'ACS Mixed Martial Arts',
+  alternateName: 'ACS MMA',
+  slogan: 'Strength, Character, Discipline',
+  logo: new URL('/brand/acs-badge-1024.png', Astro.site ?? Astro.url).href,
+  url: Astro.site?.href,
+  sport: ['Mixed martial arts', 'Brazilian jiu-jitsu', 'Muay Thai', 'Kickboxing', 'Wrestling', 'Boxing'],
+  telephone: known(site.phone),
+  email: known(site.email),
+  address: known(site.address)
+    ? { '@type': 'PostalAddress', streetAddress: site.address, addressLocality: known(site.city) }
+    : undefined,
+};
+---
+
+<Base
+  title="ACS MMA"
+  description="MMA, Brazilian jiu-jitsu, Muay Thai, wrestling and boxing. Adult classes, a youth program, personal training and a pro fight team."
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <Hero />
+  <Programs />
+  <TaleOfTheTape />
+  <Schedule />
+  <PricingTable />
+</Base>

@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Shot from '../components/Shot.astro';
+import { getOrdered } from '../lib/content';
+import { isTbd } from '../site';
+
+const coaches = await getOrdered('coaches');
+---
+
+<Base title="Coaches" description="Meet the ACS MMA coaching team: credentials, disciplines and who trains privately.">
+  <PageHero title="Coaches" lede="The people running the room. Their backgrounds, their ranks and what they teach." />
+
+  {
+    coaches.map(({ id, data }) => (
+      <article class="coach section" id={id} aria-labelledby={`${id}-name`}>
+        <div class="wrap grid">
+          <Shot id={data.shot} label="coach portrait" class="portrait" />
+          <div class="stack">
+            <p class="muted">{data.role}</p>
+            <h2 id={`${id}-name`} class:list={['h2', { tbd: isTbd(data.name) }]}>{data.name}</h2>
+            <p class:list={['lede', { tbd: isTbd(data.bio) }]}>{data.bio}</p>
+            <dl class="rows">
+              <div>
+                <dt>Credentials</dt>
+                <dd>
+                  {data.credentials.map((c) => (
+                    <span class:list={['cred', { tbd: isTbd(c) }]}>{c}</span>
+                  ))}
+                </dd>
+              </div>
+              <div>
+                <dt>Personal training</dt>
+                <dd>{data.trainsPrivate ? 'Yes' : 'No'}</dd>
+              </div>
+            </dl>
+            {data.trainsPrivate && (
+              <a href="/personal-training#consult" class="btn btn-ghost">
+                Book a training consult
+              </a>
+            )}
+          </div>
+        </div>
+      </article>
+    ))
+  }
+</Base>
+
+<style>
+  .grid {
+    display: grid;
+    gap: var(--space-l) var(--space-xl);
+    align-items: center;
+  }
+  @media (min-width: 48rem) {
+    .grid {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    }
+  }
+  .coach :global(.portrait) {
+    aspect-ratio: 4 / 5;
+  }
+  .cred {
+    display: block;
+  }
+</style>

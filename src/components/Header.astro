@@ -1,0 +1,338 @@
+---
+// Mobile first: on phones the top bar is just the logo (it slides away while scrolling down)
+// and every action lives in the thumb bar at the bottom. From 64rem up it becomes a classic top nav.
+import Logo from './Logo.astro';
+import { nav } from '../site';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<header class="header">
+  <div class="inner wrap">
+    <a href="/" class="home"><Logo /><span class="visually-hidden">ACS MMA home</span></a>
+
+    <nav aria-label="Main" class="desktop">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <a href="/memberships" class="btn btn-red join-top">Join</a>
+  </div>
+</header>
+
+<div class="thumb-bar" role="navigation" aria-label="Quick actions">
+  <button class="tb-item menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+      <path class="l1" d="M4 8h16" /><path class="l2" d="M4 16h16" />
+    </svg>
+    <span class="tb-label">Menu</span>
+  </button>
+  <a class="tb-item" href="/schedule" aria-current={path === '/schedule' ? 'page' : undefined}>
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="15" rx="1" /><path d="M4 10h16M9 3v4M15 3v4" />
+    </svg>
+    <span class="tb-label">Schedule</span>
+  </a>
+  <a class="tb-join" href="/memberships">Join</a>
+</div>
+
+<div id="mobile-menu" class="sheet" hidden>
+  <nav aria-label="Main">
+    <ul>
+      <li><a href="/" aria-current={path === '/' ? 'page' : undefined}>Home</a></li>
+      {
+        nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+      <li><a href="/coaches" aria-current={path === '/coaches' ? 'page' : undefined}>Coaches</a></li>
+      <li><a href="/contact" aria-current={path === '/contact' ? 'page' : undefined}>Visit</a></li>
+    </ul>
+  </nav>
+</div>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.header')!;
+  const bar = document.querySelector<HTMLElement>('.thumb-bar')!;
+  const btn = bar.querySelector<HTMLButtonElement>('.menu-btn')!;
+  const label = btn.querySelector<HTMLElement>('.tb-label')!;
+  const sheet = document.querySelector<HTMLElement>('#mobile-menu')!;
+
+  const setOpen = (open: boolean) => {
+    btn.setAttribute('aria-expanded', String(open));
+    label.textContent = open ? 'Close' : 'Menu';
+    sheet.hidden = !open;
+    document.documentElement.classList.toggle('menu-open', open);
+    if (open) sheet.querySelector<HTMLElement>('a[aria-current="page"], a')?.focus();
+  };
+
+  btn.addEventListener('click', () => setOpen(btn.getAttribute('aria-expanded') !== 'true'));
+  sheet.addEventListener('click', (e) => e.target === sheet && setOpen(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !sheet.hidden) {
+      setOpen(false);
+      btn.focus();
+    }
+  });
+  matchMedia('(min-width: 64rem)').addEventListener('change', (e) => e.matches && setOpen(false));
+
+  // Solid background once scrolled. On phones the top bar tucks away while scrolling down and returns
+  // on scroll up. Direction is accumulated over a distance (not per event) and scrollY is clamped, so
+  // iOS momentum, edge bounce and address-bar resizes can't make it flicker.
+  const TUCK_AFTER = 64; // px of continuous downward scroll before hiding
+  const REVEAL_AFTER = 32; // px of continuous upward scroll before showing
+  const ALWAYS_SHOW = 80; // always visible this close to the top
+  let lastY = Math.max(0, scrollY);
+  let travel = 0; // signed distance scrolled in the current direction
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const y = Math.min(Math.max(0, scrollY), Math.max(0, max));
+    const delta = y - lastY;
+    lastY = y;
+    header.classList.toggle('scrolled', y > 24);
+    if (document.documentElement.classList.contains('menu-open')) return;
+    if (y < ALWAYS_SHOW) {
+      travel = 0;
+      header.classList.remove('tucked');
+      return;
+    }
+    if (delta === 0) return;
+    // Reset the run when direction changes
+    travel = Math.sign(delta) === Math.sign(travel) ? travel + delta : delta;
+    if (travel > TUCK_AFTER) header.classList.add('tucked');
+    else if (travel < -REVEAL_AFTER) header.classList.remove('tucked');
+  };
+  const onScroll = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  // Never keep a focused control hidden under the tucked header.
+  header.addEventListener('focusin', () => header.classList.remove('tucked'));
+  update();
+</script>
+
+<style>
+  /* ---------- Top bar ---------- */
+  .header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    padding-top: env(safe-area-inset-top);
+    /* Only the slide animates; the background switches instantly so the two never flash together. */
+    transition: transform 300ms var(--ease-out);
+    will-change: transform;
+  }
+  .header.scrolled {
+    background: var(--black);
+  }
+  .header.tucked {
+    transform: translateY(-100%);
+  }
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    height: var(--header-h);
+  }
+  .home {
+    display: inline-flex;
+    padding-block: 0.25rem;
+    text-decoration: none;
+  }
+  .desktop,
+  .join-top {
+    display: none;
+  }
+
+  /* ---------- Thumb bar (phones and small tablets) ---------- */
+  .thumb-bar {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.6fr;
+    gap: 0.5rem;
+    padding: 0.5rem var(--gutter) calc(0.5rem + env(safe-area-inset-bottom));
+    background: rgb(0 0 0 / 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+  }
+  .tb-item {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.15rem;
+    min-height: 3.25rem;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--canvas);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tb-item:active {
+    background: rgb(255 255 255 / 0.1);
+  }
+  .tb-item[aria-current='page'] {
+    color: var(--white);
+    box-shadow: inset 0 -3px 0 var(--corner-red);
+  }
+  .ico {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: square;
+  }
+  .ico path {
+    transition: transform var(--dur) var(--ease-out);
+    transform-origin: 12px 12px;
+  }
+  .menu-btn[aria-expanded='true'] .l1 {
+    transform: translateY(4px) rotate(45deg);
+  }
+  .menu-btn[aria-expanded='true'] .l2 {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+  .tb-join {
+    display: grid;
+    place-items: center;
+    min-height: 3.25rem;
+    border-radius: var(--radius-control);
+    background: var(--corner-red);
+    color: var(--white);
+    font-weight: 800;
+    font-stretch: 85%;
+    font-size: 1.125rem;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tb-join:active {
+    background: var(--blood);
+  }
+
+  /* ---------- Menu sheet: links sit low, within thumb reach ---------- */
+  .sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: calc(var(--header-h) + env(safe-area-inset-top)) var(--gutter)
+      calc(5.5rem + env(safe-area-inset-bottom));
+    background: rgb(0 0 0 / 0.97);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .sheet[hidden] {
+    display: none;
+  }
+  .sheet ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .sheet a {
+    display: block;
+    padding-block: 0.55rem;
+    border-bottom: 1px solid var(--line);
+    font-size: clamp(2.25rem, 10vw, 3.5rem);
+    font-weight: 850;
+    font-stretch: 62%;
+    line-height: 1;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .sheet a[aria-current='page'] {
+    color: var(--corner-red);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet:not([hidden]) ul {
+      animation: sheet-in 260ms var(--ease-out);
+    }
+    @keyframes sheet-in {
+      from {
+        transform: translateY(1.5rem);
+        opacity: 0;
+      }
+    }
+  }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 64rem) {
+    .header.tucked {
+      transform: none;
+    }
+    .desktop {
+      display: block;
+    }
+    .join-top {
+      display: inline-flex;
+      min-height: 2.75rem;
+      padding-inline: 1.25rem;
+    }
+    .thumb-bar,
+    .sheet {
+      display: none !important;
+    }
+    .desktop ul {
+      display: flex;
+      gap: clamp(1rem, 2vw, 2rem);
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .desktop a {
+      position: relative;
+      display: inline-block;
+      padding-block: 0.75rem;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+    .desktop a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0.45rem;
+      height: 2px;
+      background: var(--corner-red);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--dur) var(--ease-out);
+    }
+    .desktop a:hover::after,
+    .desktop a[aria-current='page']::after {
+      transform: scaleX(1);
+    }
+  }
+</style>

@@ -1,0 +1,114 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Shot from '../components/Shot.astro';
+import { getOrdered } from '../lib/content';
+
+const disciplines = await getOrdered('disciplines');
+---
+
+<Base
+  title="Adult classes"
+  description="Adult MMA, Brazilian jiu-jitsu, Muay Thai, kickboxing, wrestling and boxing classes for beginners through to fighters."
+>
+  <PageHero
+    title="Adults"
+    lede="Four disciplines, one membership. Whether you've never trained or you're getting ready to compete, a coach runs every class."
+    shot={{ id: '2a', label: 'MMA class, wide' }}
+  >
+    <a href="/memberships" class="btn btn-red">See memberships</a>
+  </PageHero>
+
+  <nav class="jump wrap" aria-label="Disciplines on this page">
+    <ul>
+      {disciplines.map(({ id, data }) => <li><a href={`#${id}`}>{data.name}</a></li>)}
+    </ul>
+  </nav>
+
+  {
+    disciplines.map(({ id, data }, i) => (
+      <section class="discipline section" id={id} aria-labelledby={`${id}-title`}>
+        <div class:list={['wrap', 'split', { reverse: i % 2 === 1 }]}>
+          <div class="stack">
+            <p class="muted">{data.short}</p>
+            <h2 id={`${id}-title`} class="h2">{data.name}</h2>
+            <p class="lede">{data.summary}</p>
+            <dl class="rows">
+              <div>
+                <dt>What a class looks like</dt>
+                <dd>{data.classLooksLike}</dd>
+              </div>
+              <div>
+                <dt>What to bring</dt>
+                <dd>{data.gear}</dd>
+              </div>
+            </dl>
+            <a href="/schedule" class="btn btn-ghost">See class times</a>
+          </div>
+          <Shot id={data.shot} label={`${data.name} in action`} class="photo" />
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="section on-red">
+    <div class="wrap split">
+      <h2 class="h2">New to all of it?</h2>
+      <div class="stack">
+        <p class="lede">
+          Everyone starts somewhere. Tell your coach it's your first class and they'll walk you through the
+          basics before anything live.
+        </p>
+        <a href="/memberships" class="btn btn-black">See memberships</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .jump {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 10;
+    background: var(--black);
+    border-bottom: 1px solid var(--line);
+  }
+  .jump ul {
+    display: flex;
+    gap: var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .jump a {
+    display: block;
+    padding-block: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .jump a:hover {
+    color: var(--white);
+    text-decoration: underline;
+    text-decoration-color: var(--corner-red);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  .discipline {
+    scroll-margin-top: calc(var(--header-h) + 3.5rem);
+  }
+  .discipline :global(.photo) {
+    min-height: 26rem;
+    height: 100%;
+  }
+  @media (min-width: 60rem) {
+    .split.reverse > :first-child {
+      order: 2;
+    }
+    .split.reverse {
+      grid-template-columns: 7fr 5fr;
+    }
+  }
+</style>

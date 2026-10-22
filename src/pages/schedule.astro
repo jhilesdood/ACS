@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import Schedule from '../components/Schedule.astro';
+---
+
+<Base title="Class schedule" description="Weekly ACS MMA class schedule. Filter by day and discipline.">
+  <div class="spacer"></div>
+  <Schedule headingLevel="h1" title="Class schedule" />
+</Base>
+
+<style>
+  .spacer {
+    height: var(--header-h);
+  }
+</style>

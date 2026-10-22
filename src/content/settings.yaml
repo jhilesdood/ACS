@@ -1,0 +1,24 @@
+city: La Marque, TX
+address: TBD street address
+phone: TBD phone
+email: TBD email
+hours:
+  - days: Mon to Fri
+    time: TBD
+  - days: Sat
+    time: TBD
+  - days: Sun
+    time: TBD
+youthAges: TBD ages
+youthRatio: TBD
+youthSafety:
+  - label: Coach background checks
+    value: TBD
+  - label: Coach first aid certification
+    value: TBD
+  - label: Sparring policy
+    value: "TBD: when and how youth sparring happens"
+  - label: Injury procedure
+    value: "TBD: what happens and who is contacted"
+  - label: Pick-up and drop-off
+    value: TBD

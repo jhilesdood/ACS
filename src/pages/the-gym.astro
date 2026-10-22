@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Shot from '../components/Shot.astro';
+---
+
+<Base title="Our story" description="The story behind ACS MMA and a look inside the gym.">
+  <PageHero title="The gym" lede="Where ACS came from and what it's like inside." shot={{ id: '6a', label: 'empty cage and mats, wide' }} />
+
+  <section class="section">
+    <div class="wrap split">
+      <h2 class="h2">Our story</h2>
+      <div class="prose">
+        <p class="tbd">TBD: how ACS MMA started, who founded it and what "ACS" stands for.</p>
+        <p class="tbd">TBD: what the gym stands for and how it runs the room.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="inside-title">
+    <div class="wrap">
+      <h2 id="inside-title" class="h2 head">Inside</h2>
+      <div class="gallery">
+        <Shot id="6a" label="cage, wide" class="g1" />
+        <Shot id="6b" label="mats, wide" class="g2" />
+        <Shot id="6c" label="detail: wraps and gloves" class="g3" />
+        <Shot id="6d" label="detail: tape on the mat" class="g4" />
+      </div>
+      <dl class="rows facility">
+        <div><dt>Mat space</dt><dd class="tbd">TBD</dd></div>
+        <div><dt>Cage</dt><dd class="tbd">TBD</dd></div>
+        <div><dt>Changing rooms and showers</dt><dd class="tbd">TBD</dd></div>
+        <div><dt>Parking</dt><dd class="tbd">TBD</dd></div>
+      </dl>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .head {
+    margin-bottom: var(--space-l);
+  }
+  .gallery {
+    display: grid;
+    gap: var(--space-s);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 12rem;
+  }
+  .gallery :global(.g1) {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+  @media (min-width: 60rem) {
+    .gallery {
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-auto-rows: 16rem;
+    }
+    .gallery :global(.g1) {
+      grid-column: 1;
+      grid-row: span 2;
+    }
+    .gallery :global(.g2) {
+      grid-column: span 2;
+    }
+  }
+  .facility {
+    margin-top: var(--space-xl);
+    max-width: 48rem;
+  }
+</style>
